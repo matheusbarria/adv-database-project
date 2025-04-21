@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Home Page</title>
+    <title>Profile - Itinera</title>
 
     <!-- style links -->
     <link rel="stylesheet" href="../static/css/styles.css" />
@@ -22,13 +22,10 @@
     />
   </head>
   <body>
-    <!-- navigation bar for website -->
-
     <div class="container">
+      <!-- Sidebar -->
       <nav class="sidebar">
-        <!-- TODO: add logo for app -->
         <header class="sidebar-header"><h2>Itinera</h2></header>
-        <!-- Home -->
         <a href="{{ url_for('home') }}">
           <button>
             <span>
@@ -37,8 +34,7 @@
             </span>
           </button>
         </a>
-        <!-- Search -->
-        <a href=""> <!--replace this with explore button-->
+        <a href="">
           <button>
             <span>
               <span class="material-symbols-outlined">explore</span>
@@ -46,7 +42,6 @@
             </span>
           </button>
         </a>
-        <!-- Notifications -->
         <a href="">
           <button>
             <span>
@@ -55,15 +50,6 @@
             </span>
           </button>
         </a>
-        <a href="{{ url_for('create_post')}}">
-          <button>
-            <span>
-              <span class="material-symbols-outlined">add</span>
-              <span>Create Post</span>
-            </span>
-          </button>
-        </a>
-        <!-- Profile -->
         <a href="{{ url_for('profile') }}">
           <button>
             <span>
@@ -72,7 +58,6 @@
             </span>
           </button>
         </a>
-        {% if session.get('user_id') %}
         <a href="{{ url_for('logout') }}" class="last-element">
           <button>
             <span>
@@ -81,29 +66,67 @@
             </span>
           </button>
         </a>
-        {% else %}
-        <a href="{{ url_for('login') }}" class="last-element">
-          <button>
-            <span>
-              <span class="material-symbols-outlined">login</span>
-              <span>Login</span>
-            </span>
-          </button>
-        </a>
-        {% endif %}
       </nav>
-      <div class="content-column">
-        <h2>FEED</h2>
 
-        {% if not session.get('user_id') %}
-        <div class="alert alert-info">
-          <p>Welcome to Itinera! <a href="{{ url_for('signup') }}">Sign up</a> or <a href="{{ url_for('login') }}">log in</a> to start sharing your travel experiences.</p>
-        </div>
-        {% else %}
-        <div class="alert alert-success">
-          <p>Welcome back, {{ session.get('username') }}!</p>
-        </div>
-        {% endif %}
+      <!-- Content -->
+      <div class="content-column">
+        <div class="profile-container">
+          <h2>Profile</h2>
+          
+          {% if error %}
+          <div class="alert alert-danger">{{ error }}</div>
+          {% endif %}
+
+          <div class="card mb-4">
+            <div class="card-body">
+              <h3 class="card-title">@{{ user.username }}</h3>
+              <p class="card-text">
+                <strong>Email:</strong> {{ user.email }}<br>
+                <strong>Joined:</strong> {{ user.created_at.strftime('%B %d, %Y') }}
+              </p>
+            </div>
+          </div>
+
+          <div class="card mb-4">
+            <div class="card-body">
+              <h4>Edit Profile</h4>
+              <form method="POST">
+                <div class="form-group">
+                  <label for="display_name">Display Name</label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    id="display_name" 
+                    name="display_name" 
+                    value="{{ user.profile.display_name or '' }}"
+                  >
+                </div>
+                
+                <div class="form-group">
+                  <label for="bio">Bio</label>
+                  <textarea 
+                    class="form-control" 
+                    id="bio" 
+                    name="bio" 
+                    rows="3"
+                  >{{ user.profile.bio or '' }}</textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card mb-4">
+            <div class="card-body">
+              <h4>Statistics</h4>
+              <p>
+                <strong>Followers:</strong> {{ user.followers.count() }}<br>
+                <strong>Following:</strong> {{ user.following.count() }}<br>
+                <strong>Posts:</strong> {{ user.posts|length }}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

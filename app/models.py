@@ -1,5 +1,5 @@
 from . import db
-from sqlalchemy import CheckConstraint
+from sqlalchemy import CheckConstraint, UniqueConstraint
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 
@@ -16,7 +16,20 @@ class User(db.Model):
     likes = db.relationship('Like', back_populates='user', cascade='all, delete-orphan')
     comments = db.relationship('Comment', back_populates='user', cascade='all, delete-orphan')
     itineraries = db.relationship('Itinerary', back_populates='user', cascade='all, delete-orphan')
-
+    following = db.relationship(
+        'Follow',
+        foreign_keys='[Follow.follower_id]',
+        back_populates='follower',
+        cascade='all, delete-orphan',
+        lazy='dynamic'
+    )
+    followers = db.relationship(
+        'Follow',
+        foreign_keys='[Follow.followee_id]',
+        back_populates='followee',
+        cascade='all, delete-orphan',
+        lazy='dynamic'
+    )
     @property
     def password(self):
         raise AttributeError('password is not a readable attribute')
@@ -162,3 +175,28 @@ class TripDetail(db.Model):
 
     post = db.relationship('Post', back_populates='trip_details')
     location = db.relationship('Location', back_populates='trip_details')
+
+class Follow(db.Model):
+    __tablename__ = 'follows'
+    follower_id = db.Column(db.Integer,
+                            db.ForeignKey('users.user_id', ondelete='CASCADE'),
+                            primary_key=True)
+    followee_id = db.Column(db.Integer,
+                            db.ForeignKey('users.user_id', ondelete='CASCADE'),
+                            primary_key=True)
+    followed_at = db.Column(db.DateTime,
+                            server_default=db.func.current_timestamp())
+
+    __table_args__ = (
+        CheckConstraint('follower_id <> followee_id', name='chk_no_self_follow'),
+    )
+    follower = db.relationship(
+        'User',
+        foreign_keys=[follower_id],
+        back_populates='following'
+    )
+    followee = db.relationship(
+        'User',
+        foreign_keys=[followee_id],
+        back_populates='followers'
+    )
