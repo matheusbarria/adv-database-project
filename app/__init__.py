@@ -113,7 +113,7 @@ def create_app():
         is_following = False
         if not is_own_profile:
             is_following =  user.followers.filter_by(follower_id=session['user_id']).first() is not None
-        return render_template("profile.html", user=user, is_own_profile=is_own_profile, is_following=is_following)
+        return render_template("profile.html", user=user, is_own_profile=is_own_profile, is_following=is_following, posts= user.posts)
 
     @app.route("/profile", methods=["POST"])
     @login_required
@@ -257,6 +257,6 @@ def create_app():
             .order_by(Post.created_at.desc())
             .all())
         print(followed_posts)
-        return render_template("index.html", posts=followed_posts)
+        return followed_posts
 
     return app

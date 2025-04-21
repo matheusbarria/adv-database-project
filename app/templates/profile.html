@@ -146,6 +146,44 @@
               </p>
             </div>
           </div>
+          {% if posts %}
+          <h3>Posts</h3>
+          {% for post in posts %}
+          <div class="post-card">
+              <h3>{{ post.title }}</h3>
+              <p class="post-meta">By <a href="{{ url_for('profile', username=post.author.username) }}"><strong>@{{ post.author.username }}</strong></a> on {{ post.created_at.strftime('%B %d, %Y') }}</p>
+              <div class="post-content">
+                  <p>{{ post.body }}</p>
+              </div>
+              {% if post.locations %}
+              <div class="locations-container">
+                  {% for post_location in post.locations %}
+                  <p class="location">
+                      <span class="location-icon">📍</span> {{ post_location.location.name }}
+                      <span class="rating-icon">
+                      {% if post_location.category == 'good' %}👍
+                      {% elif post_location.category == 'mediocre' %}😐
+                      {% elif post_location.category == 'bad' %}👎
+                      {% endif %}
+                      </span>
+                  </p>
+                  {% endfor %}
+              </div>
+              {% endif %}
+              {% if post.tags %}
+                  <div class="tags">
+                      {% for post_tag in post.tags %}
+                          <span class="tag">#{{ post_tag.tag.name }}</span>
+                      {% endfor %}
+                  </div>
+              {% endif %}
+          </div>
+          {% endfor %}
+          {% else %}
+          <div class="alert alert-info">
+              <p>No posts!</p>
+          </div>
+      {% endif %}
         </div>
       </div>
     </div>
