@@ -19,4 +19,5 @@ Then, create a config.py file with the following content:
 class Config:
     SQLALCHEMY_DATABASE_URI = 'oracle+cx_oracle://<username>:<password>@localhost:1521/?service_name=XE'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    OPENCAGE_API_KEY = 'whatever  key you have'
 ```
