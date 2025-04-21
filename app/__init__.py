@@ -29,8 +29,19 @@ def create_app():
 
     @app.route("/")
     def home():
+        if 'user_id' in session:
+            user = User.query.get(session['user_id'])
+            if not user:
+                session.clear()
+                return redirect(url_for('login'))
+            followed_posts = (Post.query
+                .join(Follow, Follow.followee_id == Post.user_id)
+                .filter(Follow.follower_id == user.user_id)
+                .order_by(Post.created_at.desc())
+                .all())
+            print(followed_posts)
+            return render_template("index.html", posts=followed_posts)
         return render_template("index.html")
-
     @app.route("/signup", methods=["GET", "POST"])
     def signup():
         if request.method == "POST":
@@ -232,4 +243,20 @@ def create_app():
         except Exception as e:
             db.session.rollback()
             return redirect(url_for('home'))
+    
+    @app.route("/feed", methods=["GET"])
+    @login_required
+    def feed():
+        user = User.query.get(session['user_id'])
+        if not user:
+            session.clear()
+            return redirect(url_for('login'))
+        followed_posts = (Post.query
+            .join(Follow, Follow.followee_id == Post.user_id)
+            .filter(Follow.follower_id == user.user_id)
+            .order_by(Post.created_at.desc())
+            .all())
+        print(followed_posts)
+        return render_template("index.html", posts=followed_posts)
+
     return app

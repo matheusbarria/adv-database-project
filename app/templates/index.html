@@ -103,6 +103,35 @@
         <div class="alert alert-success">
           <p>Welcome back, {{ session.get('username') }}!</p>
         </div>
+        {% if posts %}
+        {% for post in posts %}
+        <div class="post-card">
+            <h3>{{ post.title }}</h3>
+            <p class="post-meta">By @{{ post.author.username }} on {{ post.created_at.strftime('%B %d, %Y') }}</p>
+            <p>{{ post.body }}</p>
+            {% if post.locations %}
+                {% for post_location in post.locations %}
+                <p class="location">
+                    📍 {{ post_location.location.name }}
+                    {% if post_location.category == 'good' %}👍
+                    {% elif post_location.category == 'mediocre' %}😐
+                    {% elif post_location.category == 'bad' %}👎
+                    {% endif %}
+                </p>
+                {% endfor %}
+            {% endif %}
+            {% if post.tags %}
+                <div class="tags">
+                    {% for post_tag in post.tags %}
+                        <span class="tag">#{{ post_tag.tag.name }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No posts from people you follow yet. Start following more people to see their posts!</p>
+    {% endif %}
         {% endif %}
         </div>
       </div>
