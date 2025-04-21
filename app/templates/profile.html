@@ -79,43 +79,62 @@
 
           <div class="card mb-4">
             <div class="card-body">
-              <h3 class="card-title">@{{ user.username }}</h3>
-              <p class="card-text">
-                <strong>Email:</strong> {{ user.email }}<br>
-                <strong>Joined:</strong> {{ user.created_at.strftime('%B %d, %Y') }}
-              </p>
+                <h3 class="card-title">@{{ user.username }}</h3>
+                <p class="card-text">
+                    <strong>Display Name:</strong> {{ user.profile.display_name or user.username }}<br>
+                    {% if user.profile.bio %}
+                    <strong>Bio:</strong> {{ user.profile.bio }}<br>
+                    {% endif %}
+                    <strong>Joined:</strong> {{ user.created_at.strftime('%B %d, %Y') }}
+                </p>
             </div>
-          </div>
+        </div>
 
-          <div class="card mb-4">
+        {% if is_own_profile %}
+        <div class="card mb-4">
             <div class="card-body">
-              <h4>Edit Profile</h4>
-              <form method="POST">
-                <div class="form-group">
-                  <label for="display_name">Display Name</label>
-                  <input 
-                    type="text" 
-                    class="form-control" 
-                    id="display_name" 
-                    name="display_name" 
-                    value="{{ user.profile.display_name or '' }}"
-                  >
-                </div>
-                
-                <div class="form-group">
-                  <label for="bio">Bio</label>
-                  <textarea 
-                    class="form-control" 
-                    id="bio" 
-                    name="bio" 
-                    rows="3"
-                  >{{ user.profile.bio or '' }}</textarea>
-                </div>
-                
-                <button type="submit" class="btn btn-primary">Save Changes</button>
-              </form>
+                <h4>Edit Profile</h4>
+                <form method="POST" action="{{ url_for('update_profile') }}">
+                    <div class="form-group">
+                        <label for="display_name">Display Name</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="display_name" 
+                            name="display_name" 
+                            value="{{ user.profile.display_name or '' }}"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bio">Bio</label>
+                        <textarea 
+                            class="form-control" 
+                            id="bio" 
+                            name="bio" 
+                            rows="3"
+                        >{{ user.profile.bio or '' }}</textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
             </div>
-          </div>
+        </div>
+        {% else %}
+        <div class="card mb-4">
+            <div class="card-body">
+                {% if is_following %}
+                <form action="{{ url_for('unfollow', user_id=user.user_id) }}" method="POST">
+                    <button type="submit" class="btn btn-secondary">Unfollow</button>
+                </form>
+                {% else %}
+                <form action="{{ url_for('follow', user_id=user.user_id) }}" method="POST">
+                    <button type="submit" class="btn btn-primary">Follow</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
 
           <div class="card mb-4">
             <div class="card-body">

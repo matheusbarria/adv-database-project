@@ -85,9 +85,28 @@ def create_app():
         session.pop("username", None)
         return redirect(url_for("home"))
     
-    @app.route("/profile", methods=["GET", "POST"])
+    @app.route("/profile/", defaults={'username': None})
+    @app.route("/profile/@<string:username>")
     @login_required
-    def profile():
+    def profile(username):
+        if username is None:
+            user = User.query.get(session['user_id'])
+            if not user:
+                session.clear()
+                return redirect(url_for('login'))
+        else:
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                return redirect(url_for('home'))
+        is_own_profile = user.user_id == session.get('user_id')
+        is_following = False
+        if not is_own_profile:
+            is_following =  user.followers.filter_by(follower_id=session['user_id']).first() is not None
+        return render_template("profile.html", user=user, is_own_profile=is_own_profile, is_following=is_following)
+
+    @app.route("/profile", methods=["POST"])
+    @login_required
+    def update_profile():
         user = User.query.get(session['user_id'])
         if not user:
             session.clear()
@@ -176,5 +195,41 @@ def create_app():
         except Exception as e:
             print(f"Error fetching locations: {str(e)}")
             return jsonify([])
+        
+    @app.route("/follow/<int:user_id>", methods=["POST"])
+    @login_required
+    def follow(user_id):
+        try:
+            follower = User.query.get(session['user_id'])
+            followee = User.query.get(user_id)
+            if follower and followee and follower.user_id != followee.user_id:
+                existing_follow = Follow.query.filter_by(
+                    follower_id=follower.user_id,
+                    followee_id=followee.user_id
+                ).first()
+                if not existing_follow:
+                    follow = Follow(follower_id=follower.user_id, followee_id=followee.user_id)
+                    db.session.add(follow)
+                    db.session.commit()
+            return redirect(url_for('profile', username=followee.username))
+        except Exception as e:
+            db.session.rollback()
+            return redirect(url_for('home'))
 
+    @app.route("/unfollow/<int:user_id>", methods=["POST"])
+    @login_required
+    def unfollow(user_id):
+        try:
+            follow = Follow.query.filter_by(
+                follower_id=session['user_id'],
+                followee_id=user_id
+            ).first()
+            if follow:
+                db.session.delete(follow)
+                db.session.commit()
+            followee = User.query.get(user_id)
+            return redirect(url_for('profile', username=followee.username))
+        except Exception as e:
+            db.session.rollback()
+            return redirect(url_for('home'))
     return app
