@@ -93,7 +93,7 @@
         {% endif %}
       </nav>
       <div class="content-column">
-        <h2>FEED</h2>
+        <h2 class="page-title">Your Travel Feed</h2>
 
         {% if not session.get('user_id') %}
         <div class="alert alert-info">
@@ -107,18 +107,24 @@
         {% for post in posts %}
         <div class="post-card">
             <h3>{{ post.title }}</h3>
-            <p class="post-meta">By @{{ post.author.username }} on {{ post.created_at.strftime('%B %d, %Y') }}</p>
-            <p>{{ post.body }}</p>
+            <p class="post-meta">By <a href="{{ url_for('profile', username=post.author.username) }}"><strong>@{{ post.author.username }}</strong></a> on {{ post.created_at.strftime('%B %d, %Y') }}</p>
+            <div class="post-content">
+                <p>{{ post.body }}</p>
+            </div>
             {% if post.locations %}
+            <div class="locations-container">
                 {% for post_location in post.locations %}
                 <p class="location">
-                    📍 {{ post_location.location.name }}
+                    <span class="location-icon">📍</span> {{ post_location.location.name }}
+                    <span class="rating-icon">
                     {% if post_location.category == 'good' %}👍
                     {% elif post_location.category == 'mediocre' %}😐
                     {% elif post_location.category == 'bad' %}👎
                     {% endif %}
+                    </span>
                 </p>
                 {% endfor %}
+            </div>
             {% endif %}
             {% if post.tags %}
                 <div class="tags">
@@ -130,7 +136,9 @@
         </div>
         {% endfor %}
     {% else %}
-        <p>No posts from people you follow yet. Start following more people to see their posts!</p>
+        <div class="alert alert-info">
+            <p>No posts from people you follow yet. Start following more people to see their posts!</p>
+        </div>
     {% endif %}
         {% endif %}
         </div>

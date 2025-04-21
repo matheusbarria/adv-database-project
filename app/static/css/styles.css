@@ -3,7 +3,7 @@
     display: flex;
     height: 100vh;
   }
-  
+
   /*CONTENT AREA*/
   .content-column {
     flex-grow: 1;
@@ -12,24 +12,34 @@
     margin-left: 250px;
     overflow-y: auto;
   }
-  
+
   /*general styling*/
   body {
     font-family: "Roboto", sans-serif;
   }
-  
+
   header h2 {
     font-family: "Oswald", sans-serif;
     font-weight: 600;
   }
-  
+
+  .page-title {
+    font-family: "Oswald", sans-serif;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #4CAF50;
+    display: inline-block;
+  }
+
   /*SIDEBAR*/
   .sidebar-header {
     width: 100%;
     margin-bottom: 20px;
     text-align: center;
   }
-  
+
   .sidebar {
     position: fixed;
     top: 0;
@@ -45,7 +55,7 @@
     border-right: 1px solid #dbdbdb;
     transition: 0.3s;
   }
-  
+
   .sidebar button span {
     display: flex;
     align-items: center;
@@ -55,7 +65,7 @@
     border-radius: 24px;
     line-height: 1;
   }
-  
+
   .sidebar button {
     height: 60px;
     background: transparent;
@@ -71,11 +81,11 @@
     border-radius: 25px;
     transform: scale(0.9);
   }
-  
+
   .sidebar .last-element {
     margin-top: auto;
   }
-  
+
   /*POSTS*/
   .post {
     border: 1px solid #dbdbdb;
@@ -84,55 +94,151 @@
     border-radius: 10px;
     overflow: hidden;
   }
-  
+
   .post-header {
     display: flex;
     align-items: center;
     padding: 10px;
   }
-  
+
   .post-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     margin-right: 10px;
   }
-  
+
   .post-username {
     font-weight: bold;
   }
-  
+
   .post-image {
     width: 100%;
     height: auto;
     display: block;
   }
-  
+
   .post-caption {
     padding: 10px;
   }
-  
+
   .post-caption p {
     margin: 0;
   }
-  
+
+  /* Post Card Styling */
+  .post-card {
+    border: 1px solid #dbdbdb;
+    background-color: white;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .post-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .post-card h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+    font-family: "Oswald", sans-serif;
+    font-weight: 600;
+  }
+
+  .post-meta {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+  }
+
+  .post-meta strong {
+    color: #4CAF50;
+  }
+
+  .post-content {
+    margin-bottom: 15px;
+  }
+
+  .post-card p {
+    margin-bottom: 15px;
+    line-height: 1.5;
+  }
+
+  .locations-container {
+    margin-bottom: 15px;
+  }
+
+  .location {
+    background-color: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 0.9rem;
+    border-left: 3px solid #4CAF50;
+  }
+
+  .location-icon {
+    margin-right: 5px;
+  }
+
+  .rating-icon {
+    margin-left: 5px;
+  }
+
+  .tags {
+    margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tag {
+    background-color: #e9f5e9;
+    color: #4CAF50;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+  }
+
+  .tag:hover {
+    background-color: #d4ebd4;
+    transform: scale(1.05);
+  }
+
   /* MEDIA RESIZING */
-  
+
   @media (max-width: 600px) {
     .container {
       flex-direction: column;
     }
-  
+
     .sidebar .last-element {
       margin-top: 0;
     }
-  
+
     header h2 {
       font-family: "Oswald", sans-serif;
       font-weight: 600;
       font-size: 16px;
     }
-  
+
+    .page-title {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+    }
+
     .sidebar {
       position: relative;
       bottom: 0;
@@ -146,7 +252,7 @@
       padding: 10px;
       background-color: #fff;
     }
-  
+
     .sidebar button span span:last-child {
       display: none;
     }
@@ -155,27 +261,68 @@
       padding: 10px;
       margin-bottom: 60px;
     }
-  
+
     .sidebar button {
       width: auto;
       padding: 5px;
       font-size: 12px;
     }
-  
+
     .material-symbols-outlined {
       font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24;
     }
-  
+
     .post {
       margin-bottom: 15px;
     }
-  
+
     .post-header {
       padding: 8px;
     }
-  
+
     .post-caption {
       padding: 8px;
+    }
+
+    .post-card {
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .post-card h3 {
+      font-size: 1.3rem;
+    }
+
+    .post-meta {
+      font-size: 0.8rem;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+
+    .post-content {
+      margin-bottom: 10px;
+    }
+
+    .locations-container {
+      margin-bottom: 10px;
+    }
+
+    .location {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      display: inline-block;
+      margin-bottom: 5px;
+      border-left-width: 2px;
+    }
+
+    .location-icon,
+    .rating-icon {
+      font-size: 0.8rem;
+    }
+
+    .tag {
+      padding: 4px 8px;
+      font-size: 0.75rem;
     }
   }
 
