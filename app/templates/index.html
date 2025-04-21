@@ -29,7 +29,7 @@
         <!-- TODO: add logo for app -->
         <header class="sidebar-header"><h2>Itinera</h2></header>
         <!-- Home -->
-        <a href="index.html">
+        <a href="{{ url_for('home') }}">
           <button>
             <span>
               <span class="material-symbols-outlined">home</span>
@@ -64,37 +64,38 @@
             </span>
           </button>
         </a>
-        <a href="" class="last-element">
+        {% if session.get('user_id') %}
+        <a href="{{ url_for('logout') }}" class="last-element">
           <button>
             <span>
-              <span class="material-symbols-outlined">settings</span>
-              <span>Settings</span>
+              <span class="material-symbols-outlined">logout</span>
+              <span>Logout</span>
             </span>
           </button>
         </a>
+        {% else %}
+        <a href="{{ url_for('login') }}" class="last-element">
+          <button>
+            <span>
+              <span class="material-symbols-outlined">login</span>
+              <span>Login</span>
+            </span>
+          </button>
+        </a>
+        {% endif %}
       </nav>
       <div class="content-column">
         <h2>FEED</h2>
 
-        <!-- POST #01 -->
-        <div class="post">
-          <div class="post-header">
-            <img
-              src=""
-              alt=""
-              class="post-avatar"
-            />
-            <span class="post-username">User01</span>
-          </div>
-          <img
-            src=""
-            alt=""
-            class="post-image"
-          />
-          <div class="post-caption">
-            <span class="post-username">User02</span>
-            <p>caption</p>
-          </div>
+        {% if not session.get('user_id') %}
+        <div class="alert alert-info">
+          <p>Welcome to Itinera! <a href="{{ url_for('signup') }}">Sign up</a> or <a href="{{ url_for('login') }}">log in</a> to start sharing your travel experiences.</p>
+        </div>
+        {% else %}
+        <div class="alert alert-success">
+          <p>Welcome back, {{ session.get('username') }}!</p>
+        </div>
+        {% endif %}
         </div>
       </div>
     </div>
