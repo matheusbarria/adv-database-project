@@ -141,6 +141,35 @@
               </button>
               </form>
             </div>
+            <div class="comments-section">
+              <h5>Comments ({{ post.comments|length }})</h5>
+              <form action="{{ url_for('comment', post_id=post.post_id) }}" method="POST" class="comment-form">
+                <div class="input-group">
+                    <input type="text" name="comment_body" class="form-control" placeholder="Write a comment..." maxlength="1000" required>
+                    <button type="submit" class="btn btn-primary btn-sm">Post</button>
+                </div>
+            </form>
+            <div class="comments-list">
+              {% for comment in post.comments|sort(attribute='created_at', reverse=true) %}
+              <div class="comment">
+                  <div class="comment-header">
+                      <a href="{{ url_for('profile', username=comment.user.username) }}" class="comment-author">
+                          @{{ comment.user.username }}
+                      </a>
+                      <span class="comment-date">{{ comment.formatted_date }}</span>
+                      {% if comment.user_id == session.get('user_id') %}
+                      <form action="{{ url_for('delete_comment', comment_id=comment.comment_id) }}" method="POST" class="d-inline">
+                          <button type="submit" class="btn btn-link btn-sm text-danger">Delete</button>
+                      </form>
+                      {% endif %}
+                  </div>
+                  <div class="comment-body">
+                      {{ comment.body }}
+                  </div>
+              </div>
+              {% endfor %}
+          </div>
+            </div>
         </div>
         {% endfor %}
     {% else %}

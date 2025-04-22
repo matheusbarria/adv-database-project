@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, flash, render_template, request, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
 import uuid
@@ -39,7 +39,7 @@ def create_app():
                 .filter(Follow.follower_id == user.user_id)
                 .order_by(Post.created_at.desc())
                 .all())
-            print(followed_posts)
+            # print(followed_posts)
             return render_template("index.html", posts=followed_posts)
         return render_template("index.html")
     @app.route("/signup", methods=["GET", "POST"])
@@ -256,7 +256,7 @@ def create_app():
             .filter(Follow.follower_id == user.user_id)
             .order_by(Post.created_at.desc())
             .all())
-        print(followed_posts)
+        # print(followed_posts)
         return followed_posts
 
     @app.route("/like/<int:post_id>", methods=["POST"])
@@ -277,4 +277,40 @@ def create_app():
         except Exception as e:
             db.session.rollback()
             return redirect(request.referrer or url_for('home'))
+    
+    @app.route("/comment/<int:post_id>", methods=["POST"])
+    @login_required
+    def comment(post_id):
+        try:
+            user = User.query.get(session['user_id'])
+            post = Post.query.get(post_id)
+            comment_body = request.form.get("comment_body")
+            # print(user, post, comment_body)
+            if not comment_body or not comment_body.strip():
+                flash('Comment cannot be empty')
+                return redirect(request.referrer or url_for('home'))
+            if user and post and comment_body:
+                comment = Comment(comment_id=uuid.uuid4().int ,post_id=post.post_id, user_id =user.user_id, body=comment_body.strip())
+                db.session.add(comment)
+                db.session.commit()
+            return redirect(request.referrer or url_for('home'))
+        except Exception as e:
+            db.session.rollback()
+            return redirect(request.referrer or url_for('home'))
+    
+    @app.route("/delete_comment/<int:comment_id>", methods=["POST"])
+    @login_required
+    def delete_comment(comment_id):
+        try:
+            comment =Comment.query.get(comment_id)
+            if comment and comment.user_id == session['user_id']:
+                db.session.delete(comment)
+                db.session.commit()
+            return redirect(request.referrer or url_for('home'))
+        except Exception as e:
+            db.session.rollback()
+            return redirect(request.referrer or url_for('home'))
+    
+    
+    
     return app

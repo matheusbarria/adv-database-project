@@ -144,6 +144,10 @@ class Comment(db.Model):
     post = db.relationship('Post', back_populates='comments')
     user = db.relationship('User', back_populates='comments')
 
+    @property
+    def formatted_date(self):
+        return self.created_at.strftime('%B %d, %Y %H:%M')
+
 class Itinerary(db.Model):
     __tablename__ = 'itineraries'
     itin_id = db.Column(db.Integer, primary_key=True)
