@@ -177,6 +177,14 @@
                       {% endfor %}
                   </div>
               {% endif %}
+              <div class="post-actions">
+                <form action="{{ url_for('like', post_id=post.post_id)}}" method="POST" class="d-inline">
+                  <button type="submit" class="btn btn-sm {% if post.likes|selectattr('user_id', 'equalto', session.get('user_id'))|list %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                    <span class="material-symbols-outlined">favorite</span>
+                    <span class="like-count">{{ post.likes|length }}</span>
+                </button>
+                </form>
+              </div>
           </div>
           {% endfor %}
           {% else %}

@@ -360,3 +360,23 @@
   background-color: #45a049;
   border-color: #45a049;
 }
+
+.post-actions {
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #eee;
+}
+
+.post-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.post-actions .material-symbols-outlined {
+  font-size: 1.2rem;
+}
+
+.like-count {
+  font-size: 0.9rem;
+}

@@ -259,4 +259,22 @@ def create_app():
         print(followed_posts)
         return followed_posts
 
+    @app.route("/like/<int:post_id>", methods=["POST"])
+    @login_required
+    def like(post_id):
+        try:
+            user = User.query.get(session['user_id'])
+            post = Post.query.get(post_id)
+            if user and post:
+                existing_like = Like.query.filter_by(user_id=user.user_id, post_id=post.post_id).first()
+                if existing_like:
+                    db.session.delete(existing_like)
+                elif not existing_like:
+                    like = Like(user_id=user.user_id, post_id=post.post_id)
+                    db.session.add(like)
+                db.session.commit()
+            return redirect(request.referrer or url_for('home'))
+        except Exception as e:
+            db.session.rollback()
+            return redirect(request.referrer or url_for('home'))
     return app
