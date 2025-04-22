@@ -1,4 +1,5 @@
-from flask import Flask, flash, render_template, request, redirect, url_for, session, jsonify
+import io
+from flask import Flask, flash, render_template, request, redirect, url_for, session, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
 import uuid
@@ -175,6 +176,20 @@ def create_app():
                             db.session.flush()
                         post_tag = PostTag(post_id=post.post_id, tag_id=tag.tag_id)
                         db.session.add(post_tag)
+                if 'images' in request.files:
+                    files = request.files.getlist('images')
+                    for file in files:
+                        if file and file.filename:
+                            image_data = file.read()
+                            media = Media(
+                                media_id = uuid.uuid4().int,
+                                post_id=post.post_id,
+                                image_data = image_data,
+                                filename = file.filename,
+                                mimetype =file.mimetype,
+                            )
+                            db.session.add(media)
+                        print('media added was added')
                 db.session.commit()
                 return redirect(url_for("home"))
             except Exception as e:
@@ -312,5 +327,12 @@ def create_app():
             return redirect(request.referrer or url_for('home'))
     
     
-    
+    @app.route("/media/<int:media_id>")
+    def get_media(media_id):
+        media = Media.query.get_or_404(media_id)
+        return send_file(
+            io.BytesIO(media.image_data),
+            mimetype = media.mimetype,
+            as_attachment=False
+        )
     return app

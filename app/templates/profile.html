@@ -177,6 +177,13 @@
                       {% endfor %}
                   </div>
               {% endif %}
+              {% if post.media %}
+              <div class="images">
+                {% for media in post.media %}
+                <img src= "{{ url_for('get_media', media_id=media.media_id) }}" alt="Post image">
+                {% endfor %}
+              </div>
+              {% endif %}
               <div class="post-actions">
                 <form action="{{ url_for('like', post_id=post.post_id)}}" method="POST" class="d-inline">
                   <button type="submit" class="btn btn-sm {% if post.likes|selectattr('user_id', 'equalto', session.get('user_id'))|list %}btn-danger{% else %}btn-outline-danger{% endif %}">

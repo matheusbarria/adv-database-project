@@ -126,6 +126,13 @@
                 {% endfor %}
             </div>
             {% endif %}
+            {% if post.media %}
+            <div class="images">
+              {% for media in post.media %}
+              <img src= "{{ url_for('get_media', media_id=media.media_id) }}" alt="Post image">
+              {% endfor %}
+            </div>
+            {% endif %}
             {% if post.tags %}
                 <div class="tags">
                     {% for post_tag in post.tags %}

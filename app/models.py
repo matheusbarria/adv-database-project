@@ -77,12 +77,10 @@ class Media(db.Model):
     __tablename__ = 'media'
     media_id = db.Column(db.Integer, primary_key=True)
     post_id = db.Column(db.Integer, db.ForeignKey('posts.post_id', ondelete='CASCADE'), nullable=False)
-    media_type = db.Column(db.String(10), nullable=False)
-    url = db.Column(db.String(255), nullable=False)
-
-    __table_args__ = (
-        CheckConstraint("media_type IN ('photo','video')", name='chk_media_type'),
-    )
+    image_data = db.Column(db.LargeBinary, nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    mimetype = db.Column(db.String(100), nullable=False)
+    caption = db.Column(db.String(255))
 
     post = db.relationship('Post', back_populates='media')
 

@@ -427,3 +427,15 @@
   color: #333;
   font-size: 0.9rem;
 }
+
+.images {
+  margin: 15px 0;
+}
+
+.images img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 10px 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
