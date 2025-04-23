@@ -1,3 +1,4 @@
+from tracemalloc import start
 from . import db
 from sqlalchemy import CheckConstraint, UniqueConstraint
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -153,7 +154,9 @@ class Itinerary(db.Model):
     title = db.Column(db.String(200))
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
-
+    start_date = db.Column(db.DateTime)
+    end_date = db.Column(db.DateTime)
+   
     user = db.relationship('User', back_populates='itineraries')
     items = db.relationship('ItineraryItem', back_populates='itinerary', cascade='all, delete-orphan')
 
@@ -162,7 +165,8 @@ class ItineraryItem(db.Model):
     itin_id = db.Column(db.Integer, db.ForeignKey('itineraries.itin_id', ondelete='CASCADE'), primary_key=True)
     post_id = db.Column(db.Integer, db.ForeignKey('posts.post_id'), primary_key=True)
     item_order = db.Column(db.Integer, nullable=False)
-
+    start_date = db.Column(db.DateTime)
+    
     itinerary = db.relationship('Itinerary', back_populates='items')
     post = db.relationship('Post', back_populates='itinerary_items')
 

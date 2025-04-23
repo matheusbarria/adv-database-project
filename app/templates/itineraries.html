@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Itineraries{% endblock %}
+{% block content %}
+
+
+<div id="itinerary-wrapper">
+  <header class="itinerary-header">
+    <h1>My Travel Boards</h1>
+    <div class="controls">
+      <input type="text" placeholder="Search boards..." class="search-input">
+    </div>
+  </header>
+
+  <div class="itinerary-grid">
+    {% for itinerary in user_itineraries %}
+      <div class="board-card">
+        <div class="board-images">
+          {% for post in itinerary.items[:4] %}
+            <img src="{{ post.post.media[0].filename if post.post.media else '/static/images/default.jpg' }}" alt="Post Image">
+          {% endfor %}
+        </div>
+        <div class="board-content">
+          <div class="board-header">
+            <h3>{{ itinerary.title }}</h3>
+            <span class="board-date">{{ itinerary.created_at.strftime('%B %Y') }}</span>
+          </div>
+          <p>{{ itinerary.description or "No description provided." }}</p>
+          <div class="board-footer">
+            <span>{{ itinerary.items|length }} places saved</span>
+            <a href="{{ url_for('itinerary_detail', itin_id=itinerary.itin_id) }}" class="view-button">View Board</a>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <p>No itineraries found. Create your first one!</p>
+    {% endfor %}
+  
+  </div>
+  
+  {% endblock %}

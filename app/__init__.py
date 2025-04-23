@@ -1,5 +1,5 @@
 import io
-from flask import Flask, flash, render_template, request, redirect, url_for, session, jsonify, send_file
+from flask import Flask, flash, render_template, request, redirect, url_for, session, jsonify, send_file, json
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
 import uuid
@@ -335,4 +335,135 @@ def create_app():
             mimetype = media.mimetype,
             as_attachment=False
         )
+    
+
+    @app.route("/itineraries", methods=["GET", "POST"])
+    @login_required
+    def itineraries():
+        user_id = session["user_id"]
+        if request.method == "POST":
+            title = request.form.get("title")
+            description = request.form.get("description")
+            start_date = request.form.get("start_date")
+            end_date = request.form.get("end_date")
+
+            try:
+                itinerary = Itinerary(
+                    itin_id=uuid.uuid4().int,
+                    user_id=user_id,
+                    title=title,
+                    description=description,
+                    # start_date=start_date,
+                    # end_date=end_date
+                )
+                db.session.add(itinerary)
+                db.session.commit()
+                return redirect(url_for("itineraries"))
+            except Exception as e:
+                db.session.rollback()
+                user_itineraries = Itinerary.query.filter_by(user_id=user_id).all()
+                return render_template("itineraries.html", error=f"Error: {str(e)}", user_itineraries=user_itineraries)
+
+        user_itineraries = Itinerary.query.filter_by(user_id=user_id).all()
+        return render_template("itineraries.html", user_itineraries=user_itineraries)
+
+
+    @app.route("/itinerary/<int:itin_id>", methods=["GET", "POST"])
+    @login_required
+    def itinerary_detail(itin_id):
+        user = User.query.get(session['user_id'])
+        itinerary = Itinerary.query.get(itin_id)
+
+        if not itinerary or itinerary.user_id != user.user_id:
+            return redirect(url_for('itineraries'))
+
+        if request.method == "POST":
+            post_id = request.form.get("post_id")
+            item_order = request.form.get("item_order")
+            try:
+                itinerary_item = ItineraryItem(
+                    itin_id=itin_id,
+                    post_id=post_id,
+                    item_order=item_order
+                )
+                db.session.add(itinerary_item)
+                db.session.commit()
+                return redirect(url_for("itinerary_detail", itin_id=itin_id))
+            except Exception as e:
+                db.session.rollback()
+                items = ItineraryItem.query.filter_by(itin_id=itin_id).all()
+                return render_template("itinerary_detail.html", error=f"Error: {str(e)}", itinerary=itinerary, items=items)
+
+        items = ItineraryItem.query.filter_by(itin_id=itin_id).all()
+        items_with_dates = [
+                            {
+                                "title": item.post.title,
+                                "start_date": item.start_date.strftime("%Y-%m-%dT%H:%M:%S"),
+                                "post_id": item.post.post_id
+                            }
+                            for item in items if item.start_date
+                        ]
+
+        return render_template("itinerary_detail.html", itinerary=itinerary, items=items, items_with_dates=items_with_dates)
+    
+    @app.route("/save_to_itinerary/<int:post_id>", methods=["GET", "POST"])
+    @login_required
+    def save_to_itinerary(post_id):
+        user_id = session["user_id"]
+
+        if request.method == "POST":
+            new_title = request.form.get("new_itinerary_title")
+            selected_itinerary = request.form.get("selected_itinerary")
+
+            try:
+                if new_title:
+                    itinerary = Itinerary(
+                        itin_id=uuid.uuid4().int,
+                        user_id=user_id,
+                        title=new_title
+                    )
+                    db.session.add(itinerary)
+                    db.session.flush() 
+                    itin_id = itinerary.itin_id
+                else:
+                    itin_id = int(selected_itinerary)
+
+                item_order = db.session.query(ItineraryItem).filter_by(itin_id=itin_id).count() + 1
+                db.session.add(ItineraryItem(itin_id=itin_id, post_id=post_id, item_order=item_order))
+                db.session.commit()
+                return redirect(url_for("/"))  
+
+            except Exception as e:
+                db.session.rollback()
+                return render_template("save_to_itinerary.html", error=str(e), post_id=post_id, itineraries=[])
+
+        itineraries = Itinerary.query.filter_by(user_id=user_id).all()
+        return render_template("itineraries.html", itineraries=itineraries, post_id=post_id)
+
+    @app.route("/itinerary/<int:itin_id>/reorder", methods=["POST"])
+    @login_required
+    def reorder_itinerary(itin_id):
+        user_id = session["user_id"]
+        itinerary = Itinerary.query.get(itin_id)
+
+        if not itinerary or itinerary.user_id != user_id:
+            return redirect(url_for("itineraries"))
+
+        new_order = request.form.get("new_order")
+        if new_order:
+            try:
+                post_ids = json.loads(new_order)
+                for index, post_id in enumerate(post_ids):
+                    item = ItineraryItem.query.filter_by(itin_id=itin_id, post_id=post_id).first()
+                    if item:
+                        item.item_order = index + 1
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Error saving order: {str(e)}", "danger")
+
+        return redirect(url_for("itinerary_detail", itin_id=itin_id))
+
+
+
     return app

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Itinerary Detail{% endblock %}
+{% block content %}
+<link
+  rel="stylesheet"
+  href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+/>
+<link
+  rel="stylesheet"
+  href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+/>
+
+<div class="container mt-5">
+  <h2 class="mb-4">Reorder Your Itinerary</h2>
+
+  <form action="{{ url_for('reorder_itinerary', itin_id=itinerary.itin_id) }}" method="POST">
+    <ul id="sortable-list" class="list-group">
+      {% for item in items %}
+      <li
+        class="list-group-item mb-3"
+        data-post-id="{{ item.post.post_id }}"
+      >
+        <div class="card">
+          {% if item.post.media %}
+          <img
+            src="{{ url_for('get_media', media_id=item.post.media[0].media_id) }}"
+            class="card-img-top"
+            alt="Post Image"
+          />
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ item.post.title }}</h5>
+            <p class="card-text">{{ item.post.body }}</p>
+            {% if item.post.locations %}
+            <p class="text-muted mb-0">
+              {% for loc in item.post.locations %}
+              📍 {{ loc.location.name }}{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            </p>
+            {% endif %}
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <input
+      type="hidden"
+      id="postOrder"
+      name="post_order"
+    />
+    <button type="submit" class="btn btn-success mt-3">Save Order</button>
+  </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<script>
+  $(function () {
+    $("#sortable-list").sortable();
+    $("form").on("submit", function () {
+      let order = [];
+      $("#sortable-list li").each(function () {
+        order.push($(this).data("post-id"));
+      });
+      $("#postOrder").val(order.join(","));
+    });
+  });
+</script>
+
+<style>
+  #sortable-list {
+    list-style-type: none;
+    padding-left: 0;
+  }
+
+  .list-group-item {
+    cursor: move;
+  }
+</style>
+{% endblock %}
+
+

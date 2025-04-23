@@ -46,8 +46,8 @@
             </span>
           </button>
         </a>
-        <!-- Notifications -->
-        <a href="">
+        <!--Itineraries-->
+        <a href="{{ url_for('itineraries') }}">
           <button>
             <span>
               <span class="material-symbols-outlined">add_location_alt</span>
@@ -147,6 +147,11 @@
                   <span class="like-count">{{ post.likes|length }}</span>
               </button>
               </form>
+
+              <button class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#saveModal{{ post.post_id }}">
+                <span class="material-symbols-outlined">bookmark_add</span>
+                Save
+              </button>
             </div>
             <div class="comments-section">
               <h5>Comments ({{ post.comments|length }})</h5>
@@ -178,6 +183,45 @@
           </div>
             </div>
         </div>
+
+        <!-- Save Modal -->
+            <div class="modal fade" id="saveModal{{ post.post_id }}" tabindex="-1" role="dialog" aria-labelledby="saveModalLabel{{ post.post_id }}">
+              <div class="modal-dialog" role="document">
+                <form action="{{ url_for('save_to_itinerary', post_id=post.post_id) }}" method="POST">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="saveModalLabel{{ post.post_id }}">Save to Itinerary</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span>&times;</span>
+                      </button>
+                    </div>
+
+                    <div class="modal-body">
+                      <label for="selected_itinerary">Select existing itinerary:</label>
+                      <select class="form-control" id="selected_itinerary" name="selected_itinerary">
+                        <option value="">-- Select one --</option>
+                        {% for itinerary in user.itineraries %}
+                          <option value="{{ itinerary.itin_id }}">{{ itinerary.title }}</option>
+                        {% endfor %}
+                      </select>
+
+                      <hr>
+                      <p class="text-center text-muted">OR</p>
+
+                      <label for="new_itinerary_title">Create new itinerary:</label>
+                      <input type="text" class="form-control" id="new_itinerary_title" name="new_itinerary_title" placeholder="New itinerary title">
+
+                      <textarea class="form-control mt-2" name="new_itinerary_description" placeholder="Optional description"></textarea>
+                    </div>
+
+                    <div class="modal-footer">
+                      <button type="submit" class="btn btn-primary">Save</button>
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
         {% endfor %}
     {% else %}
         <div class="alert alert-info">
