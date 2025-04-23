@@ -353,8 +353,8 @@ def create_app():
                     user_id=user_id,
                     title=title,
                     description=description,
-                    # start_date=start_date,
-                    # end_date=end_date
+                    start_date=start_date,
+                    end_date=end_date
                 )
                 db.session.add(itinerary)
                 db.session.commit()
@@ -435,7 +435,7 @@ def create_app():
 
             except Exception as e:
                 db.session.rollback()
-                return render_template("save_to_itinerary.html", error=str(e), post_id=post_id, itineraries=[])
+                return render_template("itineraries.html", error=str(e), post_id=post_id, itineraries=[])
 
         itineraries = Itinerary.query.filter_by(user_id=user_id).all()
         return render_template("itineraries.html", itineraries=itineraries, post_id=post_id)

@@ -15,8 +15,10 @@
     {% for itinerary in user_itineraries %}
       <div class="board-card">
         <div class="board-images">
-          {% for post in itinerary.items[:4] %}
-            <img src="{{ post.post.media[0].filename if post.post.media else '/static/images/default.jpg' }}" alt="Post Image">
+          {% for item in itinerary.items[:3] %}
+             <img src="{{ url_for('get_media', media_id=item.post.media[0].media_id) if item.post.media else '/static/images/default.jpg' }}" 
+             alt="Post image"
+             class="itinerary-image">
           {% endfor %}
         </div>
         <div class="board-content">

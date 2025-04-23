@@ -544,5 +544,27 @@
     font-weight: 600;
   }
 
+  .board-images {
+    display: flex;
+    gap: 4px;
+    overflow: hidden;
+  }
   
+  .board-images img.itinerary-image {
+    object-fit: cover;
+    height: 120px;
+    border-radius: 6px;
+  }
+  
+  /* changing widths of images */
+  .board-images.count-1 img {
+    width: 100%;
+  }
+  .board-images.count-2 img {
+    width: 50%;
+  }
+  .board-images.count-3 img {
+    width: 33.33%;
+  }
+
   
