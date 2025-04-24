@@ -41,7 +41,7 @@ def create_app():
                 .order_by(Post.created_at.desc())
                 .all())
             # print(followed_posts)
-            return render_template("index.html", posts=followed_posts)
+            return render_template("index.html", user=user, posts=followed_posts)
         return render_template("index.html")
     @app.route("/signup", methods=["GET", "POST"])
     def signup():
@@ -406,7 +406,7 @@ def create_app():
 
         return render_template("itinerary_detail.html", itinerary=itinerary, items=items, items_with_dates=items_with_dates)
     
-    @app.route("/save_to_itinerary/<int:post_id>", methods=["GET", "POST"])
+    @app.route("/save_to_itinerary/<int:post_id>", methods=["POST"])
     @login_required
     def save_to_itinerary(post_id):
         user_id = session["user_id"]
@@ -414,13 +414,15 @@ def create_app():
         if request.method == "POST":
             new_title = request.form.get("new_itinerary_title")
             selected_itinerary = request.form.get("selected_itinerary")
+            itin_description = request.form.get("new_itinerary_description")
 
             try:
                 if new_title:
                     itinerary = Itinerary(
                         itin_id=uuid.uuid4().int,
                         user_id=user_id,
-                        title=new_title
+                        title=new_title,
+                        description=itin_description
                     )
                     db.session.add(itinerary)
                     db.session.flush() 
@@ -431,11 +433,12 @@ def create_app():
                 item_order = db.session.query(ItineraryItem).filter_by(itin_id=itin_id).count() + 1
                 db.session.add(ItineraryItem(itin_id=itin_id, post_id=post_id, item_order=item_order))
                 db.session.commit()
-                return redirect(url_for("/"))  
+                return redirect(url_for("itineraries"))  
 
             except Exception as e:
                 db.session.rollback()
-                return render_template("itineraries.html", error=str(e), post_id=post_id, itineraries=[])
+                itineraries = Itinerary.query.filter_by(user_id=user_id).all()
+                return render_template("itineraries.html", error=str(e), post_id=post_id, itineraries=itineraries)
 
         itineraries = Itinerary.query.filter_by(user_id=user_id).all()
         return render_template("itineraries.html", itineraries=itineraries, post_id=post_id)
@@ -464,6 +467,44 @@ def create_app():
 
         return redirect(url_for("itinerary_detail", itin_id=itin_id))
 
+    @app.route("/delete_itinerary/<int:itin_id>", methods=["POST"])
+    @login_required
+    def delete_itinerary(itin_id):
+        user = User.query.get(session['user_id'])
+        itinerary = Itinerary.query.get(itin_id)
 
+        if not itinerary or itinerary.user_id != user.user_id:
+            return redirect(url_for("itineraries"))
+
+        try:
+            db.session.delete(itinerary)
+            db.session.commit()
+            return redirect(url_for("itineraries"))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error deleting itinerary: {str(e)}", "danger")
+            return redirect(url_for("itinerary_detail", itin_id=itin_id))
+    
+    @app.route("/delete_itinerary_item/<int:itin_id>/<int:post_id>", methods=["POST"])
+    @login_required
+    def delete_itinerary_item(itin_id, post_id):
+        user = User.query.get(session['user_id'])
+        itinerary_item = ItineraryItem.query.get((itin_id, post_id))  
+
+        if not itinerary_item or itinerary_item.itinerary.user_id != user.user_id:
+            print('itinerary item not found')
+            return redirect(url_for("itineraries"))
+
+        try:
+            db.session.delete(itinerary_item)
+            print('deleted itinerary item')
+            db.session.commit()
+            return redirect(url_for("itinerary_detail", itin_id=itin_id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error deleting itinerary item: {str(e)}", "danger")
+            return redirect(url_for("itinerary_detail", itin_id=itin_id))
+
+        
 
     return app

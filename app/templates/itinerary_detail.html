@@ -13,8 +13,11 @@
 <div class="itinerary-wrapper">
   <!-- <h2 class="mb-4">Reorder Your Itinerary</h2> -->
   <header class="itinerary-header">
-    <h1>Reorder Your Itnerary</h1>
+    <h1>{{ itinerary.title }}</h1>
   </header>
+  <div class="alert alert-success">
+      <p>Plan your trip by dragging your posts in the order you will visit them!</p>
+  </div>
 
   <form action="{{ url_for('reorder_itinerary', itin_id=itinerary.itin_id) }}" method="POST">
     <ul id="sortable-list" class="list-group">
@@ -34,6 +37,13 @@
               {% endfor %}
             </p>
             {% endif %}
+            <button
+                type="button"
+                class="btn btn-link btn-sm text-danger d-inline"
+                onclick="deleteItineraryItem(`{{ url_for('delete_itinerary_item', itin_id=item.itin_id, post_id=item.post.post_id) }}`)"
+              >
+                Delete
+            </button>
           </div>
         </div>
       </li>
@@ -47,22 +57,35 @@
     />
     <button type="submit" class="btn btn-success mt-3">Save Order</button>
   </form>
-</div>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
-<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-<script>
-  $(function () {
-    $("#sortable-list").sortable();
-    $("form").on("submit", function () {
-      let order = [];
-      $("#sortable-list li").each(function () {
-        order.push($(this).data("post-id"));
+  <script>
+    $(function () {
+      $("#sortable-list").sortable();
+      $("form").on("submit", function () {
+        let order = [];
+        $("#sortable-list li").each(function () {
+          order.push($(this).data("post-id"));
+        });
+        $("#postOrder").val(order.join(","));
       });
-      $("#postOrder").val(order.join(","));
     });
-  });
-</script>
+
+    function deleteItineraryItem(url) {
+      if (confirm("Are you sure you want to delete this item?")) {
+        fetch(url, { method: "POST" })
+          .then((response) => {
+            if (response.ok) {
+              location.reload();
+            } else {
+              alert("Failed to delete the item.");
+            }
+          })
+          .catch(() => alert("An error occurred while deleting the item."));
+      }
+    }
+  </script>
 
 <style>
   #sortable-list {

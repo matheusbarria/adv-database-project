@@ -7,13 +7,13 @@
   <header class="itinerary-header">
     <h1>My Travel Boards</h1>
     <div class="controls">
-      <input type="text" placeholder="Search boards..." class="search-input">
+      <input type="text" placeholder="Search boards..." class="search-input" id="search-input">
     </div>
   </header>
 
   <div class="itinerary-grid">
     {% for itinerary in user_itineraries %}
-      <div class="board-card">
+      <div class="board-card" data-title="{{ itinerary.title|lower }}">
         <div class="board-images">
           {% for item in itinerary.items[:3] %}
              <img src="{{ url_for('get_media', media_id=item.post.media[0].media_id) if item.post.media else '/static/images/default.jpg' }}" 
@@ -29,6 +29,9 @@
           <p>{{ itinerary.description or "No description provided." }}</p>
           <div class="board-footer">
             <span>{{ itinerary.items|length }} places saved</span>
+            <form action="{{ url_for('delete_itinerary', itin_id=itinerary.itin_id) }}" method="POST" class="d-inline">
+              <button type="submit" class="btn btn-link btn-sm text-danger">Delete</button>
+            </form>
             <a href="{{ url_for('itinerary_detail', itin_id=itinerary.itin_id) }}" class="view-button">View Board</a>
           </div>
         </div>
@@ -38,5 +41,20 @@
     {% endfor %}
   
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const searchInput = document.getElementById('search-input');
+      const boardCards = document.querySelectorAll('.board-card');
+
+      searchInput.addEventListener('input', function () {
+        const query = searchInput.value.toLowerCase();
+        boardCards.forEach(card => {
+          const title = card.getAttribute('data-title');
+          card.style.display = title.includes(query) ? '' : 'none';
+        });
+      });
+    });
+  </script>
   
   {% endblock %}
