@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Map{% endblock %}
+{% block content %}
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+/>
+<script
+    src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+></script>
+
+<div id="itinerary-wrapper">
+  <header class="itinerary-header">
+    <h1>Map</h1>
+    <div class="controls">
+      <label for="itinerary-select">Choose an itinerary:</label>
+      <select id="itinerary-select" class="search-input">
+        <option value="">-- Select Itinerary --</option>
+        {% for itin in user_itineraries %}
+          <option value="{{ itin.title }}">{{ itin.title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </header>
+
+  <div id="itinerary-map" style="height: 600px;"></div>
+
+  <script>
+    const itineraryMap = L.map('itinerary-map').setView([0, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(itineraryMap);
+
+    const allItineraries = JSON.parse('{{ user_itineraries | tojson | safe }}');
+    let markers = [];
+
+    function clearMarkers() {
+      markers.forEach(marker => itineraryMap.removeLayer(marker));
+      markers = [];
+    }
+
+    function addItineraryMarkers(itinerary) {
+      itinerary.items.forEach(item => {
+        if (item.post.locations) {
+          item.post.locations.forEach(location => {
+            const lat = location.location.latitude;
+            const lon = location.location.longitude;
+            const marker = L.marker([lat, lon]).addTo(itineraryMap);
+            marker.bindPopup(`<strong>${itinerary.title}</strong><br>${item.post.title}`);
+            markers.push(marker);
+          });
+        }
+      });
+
+      if (markers.length > 0) {
+        const group = new L.featureGroup(markers);
+        itineraryMap.fitBounds(group.getBounds().pad(0.2));
+      }
+    }
+
+    document.getElementById('itinerary-select').addEventListener('change', function (event) {
+      const selectedTitle = event.target.value;
+      clearMarkers();
+
+      const selectedItinerary = allItineraries.find(itin =>
+        itin.title === selectedTitle
+      );
+
+      if (selectedItinerary) {
+        addItineraryMarkers(selectedItinerary);
+      }
+    });
+  </script>
+</div>
+
+{% endblock %}

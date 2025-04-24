@@ -1,3 +1,4 @@
+from http import server
 import io
 from flask import Flask, flash, render_template, request, redirect, url_for, session, jsonify, send_file, json
 from flask_sqlalchemy import SQLAlchemy
@@ -504,6 +505,41 @@ def create_app():
             db.session.rollback()
             flash(f"Error deleting itinerary item: {str(e)}", "danger")
             return redirect(url_for("itinerary_detail", itin_id=itin_id))
+
+    @app.route("/map")
+    @login_required
+    def map():
+        user = User.query.get(session["user_id"])
+        itineraries = Itinerary.query.filter_by(user_id=user.user_id).all()
+
+        serialized_itins = []
+        for itin in itineraries:
+            serialized_items = []
+            for item in itin.items:
+                locations = []
+                for post_loc in item.post.locations:
+                    loc = post_loc.location
+                    locations.append({
+                        "location": {
+                            "latitude": loc.lat,
+                            "longitude": loc.lng
+                        }
+                    })
+
+                serialized_items.append({
+                    "post": {
+                        "title": item.post.title,
+                        "locations": locations
+                    }
+                })
+
+            serialized_itins.append({
+                "id": itin.itin_id,
+                "title": itin.title,
+                "items": serialized_items
+            })
+
+        return render_template("map.html", user=user, user_itineraries=serialized_itins)
 
         
 
