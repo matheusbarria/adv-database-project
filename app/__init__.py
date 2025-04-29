@@ -6,6 +6,7 @@ from config import Config
 import uuid
 from functools import wraps 
 import requests
+from datetime import datetime
 db = SQLAlchemy()
 
 def login_required(f):
@@ -395,7 +396,7 @@ def create_app():
                 items = ItineraryItem.query.filter_by(itin_id=itin_id).all()
                 return render_template("itinerary_detail.html", error=f"Error: {str(e)}", itinerary=itinerary, items=items)
 
-        items = ItineraryItem.query.filter_by(itin_id=itin_id).all()
+        items = ItineraryItem.query.filter_by(itin_id=itin_id).order_by(ItineraryItem.item_order).all()
         items_with_dates = [
                             {
                                 "title": item.post.title,
@@ -416,14 +417,24 @@ def create_app():
             new_title = request.form.get("new_itinerary_title")
             selected_itinerary = request.form.get("selected_itinerary")
             itin_description = request.form.get("new_itinerary_description")
-
+            itin_start_date = request.form.get("start_date")
+            itin_end_date = request.form.get("end_date")             
             try:
                 if new_title:
+                    start_date_obj = None
+                    end_date_obj = None
+                    if itin_start_date:
+                        start_date_obj = datetime.strptime(itin_start_date, "%Y-%m-%d")
+                    if itin_end_date:
+                        end_date_obj = datetime.strptime(itin_end_date, "%Y-%m-%d")
+
                     itinerary = Itinerary(
                         itin_id=uuid.uuid4().int,
                         user_id=user_id,
                         title=new_title,
-                        description=itin_description
+                        description=itin_description,
+                        start_date=start_date_obj,
+                        end_date=end_date_obj
                     )
                     db.session.add(itinerary)
                     db.session.flush() 
@@ -453,10 +464,10 @@ def create_app():
         if not itinerary or itinerary.user_id != user_id:
             return redirect(url_for("itineraries"))
 
-        new_order = request.form.get("new_order")
+        new_order = request.form.get("post_order")
         if new_order:
             try:
-                post_ids = json.loads(new_order)
+                post_ids = new_order.split(",")
                 for index, post_id in enumerate(post_ids):
                     item = ItineraryItem.query.filter_by(itin_id=itin_id, post_id=post_id).first()
                     if item:
@@ -511,11 +522,41 @@ def create_app():
     def map():
         user = User.query.get(session["user_id"])
         itineraries = Itinerary.query.filter_by(user_id=user.user_id).all()
+        locations = (Post.query
+                .join(Follow, Follow.followee_id == Post.user_id)
+                .filter(Follow.follower_id == user.user_id)
+                .order_by(Post.created_at.desc())
+                .all())
+        
+
+        
+        serialized_locations = []
+        for post in locations:
+            serialized_item = []
+            for item in post.locations:
+    
+                location = Location.query.get(item.loc_id)
+                if location:
+                    serialized_item.append({
+                        "location": {
+                            "latitude": location.lat,
+                            "longitude": location.lng
+                        }
+                    })
+
+            serialized_locations.append({
+                "id": post.post_id,
+                "title": post.title,
+                "user": post.author.username,
+                "locations": serialized_item
+            })
+        
+
 
         serialized_itins = []
         for itin in itineraries:
             serialized_items = []
-            for item in itin.items:
+            for item in sorted(itin.items, key=lambda x: x.item_order):
                 locations = []
                 for post_loc in item.post.locations:
                     loc = post_loc.location
@@ -527,6 +568,7 @@ def create_app():
                     })
 
                 serialized_items.append({
+                    "item_order": item.item_order, 
                     "post": {
                         "title": item.post.title,
                         "locations": locations
@@ -538,8 +580,8 @@ def create_app():
                 "title": itin.title,
                 "items": serialized_items
             })
-
-        return render_template("map.html", user=user, user_itineraries=serialized_itins)
+        
+        return render_template("map.html", user=user, user_itineraries=serialized_itins, locations=serialized_locations)
 
         
 

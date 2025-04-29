@@ -26,6 +26,11 @@
             <h3>{{ itinerary.title }}</h3>
             <span class="board-date">{{ itinerary.created_at.strftime('%B %Y') }}</span>
           </div>
+          <p class="text-muted mb-2 itinerary-dates">
+            {{ itinerary.start_date.strftime('%b %d, %Y') if itinerary.start_date else '' }}
+            –
+            {{ itinerary.end_date.strftime('%b %d, %Y') if itinerary.end_date else '' }}
+          </p>
           <p>{{ itinerary.description or "No description provided." }}</p>
           <div class="board-footer">
             <span>{{ itinerary.items|length }} places saved</span>
@@ -37,7 +42,7 @@
         </div>
       </div>
     {% else %}
-      <p>No itineraries found. Create your first one!</p>
+      <p>No itineraries found. Create your first one by saving posts!</p>
     {% endfor %}
   
   </div>

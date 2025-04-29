@@ -9,6 +9,13 @@
 <script
     src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
 ></script>
+<!-- Routing Machine CSS links (Leaflet)  -->
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
+/>
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
 
 <div id="itinerary-wrapper">
   <header class="itinerary-header">
@@ -16,7 +23,7 @@
     <div class="controls">
       <label for="itinerary-select">Choose an itinerary:</label>
       <select id="itinerary-select" class="search-input">
-        <option value="">-- Select Itinerary --</option>
+        <option value="">-- All Locations (Following) --</option>
         {% for itin in user_itineraries %}
           <option value="{{ itin.title }}">{{ itin.title }}</option>
         {% endfor %}
@@ -34,25 +41,63 @@
     }).addTo(itineraryMap);
 
     const allItineraries = JSON.parse('{{ user_itineraries | tojson | safe }}');
+    const allPosts = JSON.parse('{{ locations | tojson | safe }}');
+    
     let markers = [];
+    const routeLatLngs = [];
+    let routeLine = null;
 
+    addPostMarkers(allPosts); // adding all posts to the map (that user is following)
     function clearMarkers() {
       markers.forEach(marker => itineraryMap.removeLayer(marker));
       markers = [];
+
+      if (routeLine) {
+        itineraryMap.removeLayer(routeLine);
+        routeLine = null;
+      }
+
+      routeLatLngs.length = 0;
+    }
+
+    function addPostMarkers(posts) {
+      posts.forEach(post => {
+        if (post.locations) {
+          post.locations.forEach(location => {
+            const lat = location.location.latitude;
+            const lon = location.location.longitude;
+            const marker = L.marker([lat, lon]).addTo(itineraryMap);
+            marker.bindPopup(`<strong>${post.title}</strong><br>Posted By: ${post.user}`);
+            markers.push(marker);
+          });
+        }
+      });
+
+      if (markers.length > 0) {
+        const group = new L.featureGroup(markers);
+        itineraryMap.fitBounds(group.getBounds().pad(0.2));
+      }
     }
 
     function addItineraryMarkers(itinerary) {
+      clearMarkers();
       itinerary.items.forEach(item => {
         if (item.post.locations) {
           item.post.locations.forEach(location => {
             const lat = location.location.latitude;
             const lon = location.location.longitude;
             const marker = L.marker([lat, lon]).addTo(itineraryMap);
-            marker.bindPopup(`<strong>${itinerary.title}</strong><br>${item.post.title}`);
+            marker.bindPopup(`<strong>${item.item_order}. ${item.post.title}</strong><br>${itinerary.title}`);
             markers.push(marker);
+            routeLatLngs.push([lat, lon]);
           });
         }
       });
+
+      if (routeLatLngs.length > 1) {
+        routeLine = L.polyline(routeLatLngs, { color: 'blue', weight: 4 }).addTo(itineraryMap);
+        markers.push(routeLine); 
+      }
 
       if (markers.length > 0) {
         const group = new L.featureGroup(markers);
@@ -67,8 +112,10 @@
       const selectedItinerary = allItineraries.find(itin =>
         itin.title === selectedTitle
       );
-
-      if (selectedItinerary) {
+      
+      if (!selectedItinerary) {
+        addPostMarkers(allPosts);
+      } else if (selectedItinerary) {
         addItineraryMarkers(selectedItinerary);
       }
     });
