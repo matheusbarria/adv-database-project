@@ -28,6 +28,15 @@
       <nav class="sidebar">
         <!-- TODO: add logo for app -->
         <header class="sidebar-header"><h2>Itinera</h2></header>
+        <form action="{{ url_for('search_users') }}" method="GET" class="search-form">
+          <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search users..." 
+                   value="{{ request.args.get('q', '') }}">
+            <button class="btn btn-outline-secondary" type="submit">
+              <span class="material-symbols-outlined">search</span>
+            </button>
+          </div>
+        </form>
         <!-- Home -->
         <a href="{{ url_for('home') }}">
           <button>

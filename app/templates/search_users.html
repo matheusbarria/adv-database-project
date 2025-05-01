@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}User Search{% endblock %}
+{% block content %}
+
+<div class="content-column">
+  <h2>User Search Results</h2>
+  
+  <div class="search-container">
+    <form action="{{ url_for('search_users') }}" method="GET" class="mb-4">
+      <div class="input-group">
+        <input type="text" name="q" class="form-control" placeholder="Search by username..." 
+               value="{{ query }}" required>
+        <button class="btn btn-primary" type="submit">Search</button>
+      </div>
+    </form>
+    
+    {% if not query %}
+      <div class="alert alert-info">Enter a username to search.</div>
+    {% elif query|length < 2 %}
+      <div class="alert alert-info">Please enter at least 2 characters to search.</div>
+    {% elif not users %}
+      <div class="alert alert-info">No users found matching "{{ query }}".</div>
+    {% else %}
+      <div class="user-results">
+        <h3>Found {{ users|length }} user(s)</h3>
+        
+        {% for user in users %}
+          <div class="user-card">
+            <div class="user-info">
+              <h4>{{ user.profile.display_name or user.username }}</h4>
+              <p class="text-muted">@{{ user.username }}</p>
+            </div>
+            <div class="user-actions">
+              <a href="{{ url_for('profile', username=user.username) }}" class="btn btn-primary">View Profile</a>
+              
+              {% if session.get('user_id') and session.get('user_id') != user.user_id %}
+                {% set is_following = user.followers.filter_by(follower_id=session.get('user_id')).first() is not none %}
+                
+                {% if is_following %}
+                  <form action="{{ url_for('unfollow', user_id=user.user_id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-secondary">Unfollow</button>
+                  </form>
+                {% else %}
+                  <form action="{{ url_for('follow', user_id=user.user_id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-outline-primary">Follow</button>
+                  </form>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  .search-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .user-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: white;
+  }
+  
+  .user-info {
+    flex: 1;
+  }
+  
+  .user-actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  @media (max-width: 576px) {
+    .user-card {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .user-actions {
+      margin-top: 10px;
+      align-self: flex-end;
+    }
+  }
+</style>
+
+{% endblock %}
