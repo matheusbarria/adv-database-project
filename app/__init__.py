@@ -161,6 +161,7 @@ def create_app():
     @login_required
     def create_post():
         user = User.query.get(session['user_id'])
+        user_itineraries = Itinerary.query.filter_by(user_id=user.user_id).all()
         if request.method == "POST":
             title = request.form.get("title")
             location_name = request.form.get("location")
@@ -169,6 +170,11 @@ def create_app():
             longitude = float(request.form.get("longitude"))
             body = request.form.get("body")
             tags = request.form.get("tags")
+            selected_itinerary = request.form.get("selected_itinerary")
+            new_itinerary_title = request.form.get("new_itinerary_title")
+            new_itinerary_description = request.form.get("new_itinerary_description")
+            start_date = request.form.get("start_date")
+            end_date = request.form.get("end_date")
             try:
                 post = Post(
                     post_id=uuid.uuid4().int,
@@ -209,12 +215,46 @@ def create_app():
                             )
                             db.session.add(media)
                         print('media added was added')
+                itinerary_id = None
+                if new_itinerary_title:
+                    # Create new itinerary
+                    start_date_obj = None
+                    end_date_obj = None
+                    if start_date:
+                        start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
+                    if end_date:
+                        end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
+                    
+                    itinerary = Itinerary(
+                        itin_id=uuid.uuid4().int,
+                        user_id=user.user_id,
+                        title=new_itinerary_title,
+                        description=new_itinerary_description,
+                        start_date=start_date_obj,
+                        end_date=end_date_obj
+                    )
+                    db.session.add(itinerary)
+                    db.session.flush()
+                    itinerary_id = itinerary.itin_id
+                elif selected_itinerary:
+                    # Use existing itinerary
+                    itinerary_id = int(selected_itinerary)
+                
+                # Add post to itinerary if selected
+                if itinerary_id:
+                    item_order = db.session.query(ItineraryItem).filter_by(itin_id=itinerary_id).count() + 1
+                    itinerary_item = ItineraryItem(
+                        itin_id=itinerary_id,
+                        post_id=post.post_id,
+                        item_order=item_order
+                    )
+                    db.session.add(itinerary_item)
                 db.session.commit()
                 return redirect(url_for("home"))
             except Exception as e:
                 db.session.rollback()
                 return render_template("create_post.html", error=f"Error: {str(e)}")
-        return render_template("create_post.html")
+        return render_template("create_post.html", user_itineraries=user_itineraries)
 
     @app.route("/search_locations/<query>")
     def search_locations(query):
@@ -278,6 +318,26 @@ def create_app():
             db.session.rollback()
             return redirect(url_for('home'))
     
+    @app.route("/delete_post/<int:post_id>", methods=["POST"])
+    @login_required
+    def delete_post(post_id):
+        post = Post.query.get_or_404(post_id)
+        Comment.query.filter_by(post_id=post.post_id).delete()
+        Like.query.filter_by(post_id=post.post_id).delete()
+        PostLocation.query.filter_by(post_id=post.post_id).delete()
+        PostTag.query.filter_by(post_id=post.post_id).delete()
+        ItineraryItem.query.filter_by(post_id=post.post_id).delete()
+        for media in post.media:
+            db.session.delete(media)
+        
+        # Delete the post itself
+        db.session.delete(post)
+        db.session.commit()
+        flash("Post deleted successfully.", "success")
+        return redirect(request.referrer or url_for('profile'))
+
+
+
     @app.route("/feed", methods=["GET"])
     @login_required
     def feed():
