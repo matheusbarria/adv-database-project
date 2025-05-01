@@ -37,9 +37,8 @@ def create_app():
         if not query or len(query) < 2:
             return render_template("search_users.html", users=[], query=query)
         users = User.query.filter(
-        db.or_(User.username.ilike(f'%{query}%'),
-            User.profile.has(Profile.display_name.ilike(f'%{query}%'))
-        )
+            (User.username.ilike(f'%{query}%')) | 
+            (User.profile.has(Profile.display_name.ilike(f'%{query}%')))
         ).limit(20).all()
         return render_template("search_users.html", 
                           users=users, 
