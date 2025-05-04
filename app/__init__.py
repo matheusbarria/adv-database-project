@@ -7,6 +7,7 @@ import uuid
 from functools import wraps 
 import requests
 from datetime import datetime
+import cx_Oracle
 db = SQLAlchemy()
 
 def login_required(f):
@@ -24,6 +25,10 @@ def create_app():
     app.secret_key = 'abc123'
 
     db.init_app(app)
+    dsn = cx_Oracle.makedsn("172.22.132.135", 1521, service_name="XE")
+    conn = cx_Oracle.connect("system", "Advdata8", dsn=dsn)
+    app.config["ORACLE_CONN"] = conn
+    app.config["ORACLE_CURSOR"] = conn.cursor()
 
     from .models import User, Profile, Post, Media, Location, PostLocation, Tag, PostTag, Like, Comment, Itinerary, ItineraryItem, TripDetail, Follow
 
